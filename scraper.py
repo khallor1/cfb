@@ -2,16 +2,8 @@
 import urllib2
 from bs4 import BeautifulSoup
 
-#parse html contents
-url = 'http://www.espn.com/college-football/team/roster/_/id/25/california-golden-bears'
-page = urllib2.urlopen(url)
-soup = BeautifulSoup(page, 'html.parser')
-
-#get rows of roster table
-rows = soup.find('table', 'tablehead').contents
-del rows[:2]
-
-def mkdict(row):
+#make a player from html row
+def mkplayer(row):
 	dict = {}
 	dict['no'] = row[0].get_text()
 	dict['name'] = row[1].get_text()
@@ -22,9 +14,20 @@ def mkdict(row):
 	dict['hometown'] = row[6].get_text()
 	return dict
 
-players = []
-for r in rows:
-	dict = mkdict(r.contents)
-	players.append(dict)
-print(players)	
+def mkroster(url):
+	#parse html contents
+	page = urllib2.urlopen(url)
+	soup = BeautifulSoup(page, 'html.parser')
+
+	#get rows of roster table
+	rows = soup.find('table', 'tablehead').contents
+	del rows[:2]
+
+	players = []
+	for r in rows:
+		player = mkplayer(r.contents)
+		players.append(player)
+	return players
+
+mkroster('http://www.espn.com/college-football/team/roster/_/id/25/california-golden-bears')
 
