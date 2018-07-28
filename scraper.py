@@ -1,4 +1,5 @@
 # import libraries
+import json
 import urllib2
 from bs4 import BeautifulSoup
 
@@ -14,6 +15,7 @@ def mkplayer(row):
 	dict['hometown'] = row[6].get_text()
 	return dict
 
+#list of players for a given team
 def mkroster(url):
 	#parse html contents
 	page = urllib2.urlopen(url)
@@ -23,11 +25,39 @@ def mkroster(url):
 	rows = soup.find('table', 'tablehead').contents
 	del rows[:2]
 
+	#create a list of players
 	players = []
 	for r in rows:
 		player = mkplayer(r.contents)
 		players.append(player)
 	return players
 
-mkroster('http://www.espn.com/college-football/team/roster/_/id/25/california-golden-bears')
+#creates list of teamnames, attached to rosters
+def mkteams():
+	#return this list of team objects
+	out = []
+
+	#base url
+	baseurl = 'http://www.espn.com/college-football/teams'
+	#parse html
+	page = urllib2.urlopen(baseurl)
+	soup = BeautifulSoup(page, 'html.parser')
+
+	#find list of fbs teams
+	fbs = soup.find('div', class_='span-2')
+	teams = fbs.find_all('li')
+
+	#add teamname and roster to list
+	for li in teams:
+		name = li.find('h5').get_text()
+		roster = li.find('a', string='Roster')['href']
+		roster = 'http://www.espn.com' + roster
+		players = mkroster(roster)
+		obj = {'teamname': name, 'roster': players}
+		out.append(obj)
+	return out
+
+#write result to file
+with open('result.json', 'w') as fp:
+    json.dump(mkteams(), fp)
 
