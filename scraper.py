@@ -1,6 +1,6 @@
 # import libraries
 import json
-import urllib2
+import requests
 from bs4 import BeautifulSoup
 
 #make a player from html row
@@ -18,7 +18,7 @@ def mkplayer(row):
 #list of players for a given team
 def mkroster(url):
 	#parse html contents
-	page = urllib2.urlopen(url)
+	page = requests.get(url).text
 	soup = BeautifulSoup(page, 'html.parser')
 
 	#get rows of roster table
@@ -40,7 +40,7 @@ def mkteams():
 	#base url
 	baseurl = 'http://www.espn.com/college-football/teams'
 	#parse html
-	page = urllib2.urlopen(baseurl)
+	page = requests.get(baseurl).text
 	soup = BeautifulSoup(page, 'html.parser')
 
 	#find list of fbs teams
@@ -57,7 +57,7 @@ def mkteams():
 		out.append(obj)
 	return out
 
-#write result to file
+# write result to file
 with open('result.json', 'w') as fp:
     json.dump(mkteams(), fp)
 
