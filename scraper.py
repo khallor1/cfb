@@ -1,5 +1,6 @@
 # Copyright 2018 Kieran Halloran
 # ESPN cfb web scraper
+
 # import libraries
 import json
 import requests
