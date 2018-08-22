@@ -9,15 +9,9 @@ from pymongo import MongoClient
 
 MAPBOX_ACCESS_TOKEN = os.environ['MAPBOX_ACCESS_TOKEN']
 MONGO_URI = os.environ['MONGO_URI']
+#connect to MongoDB
 mongo = MongoClient(MONGO_URI)
 db = mongo.test
-
-#create df of roster json strings with teamname as indecies
-df = pd.DataFrame.from_records(db.rosters.find()).set_index('teamname')
-del df['_id']
-#map roster strings to dataframes, then convert entire 1d dataframe to series
-df['roster'] = df['roster'].map(lambda x: pd.DataFrame.from_records(x))
-s = df.squeeze()
 
 app = dash.Dash()
 
@@ -25,7 +19,7 @@ app.layout = html.Div([
 	html.Div(
 		dcc.Dropdown(
 			id='team-select',
-			options=[{'label': name, 'value': name} for name in s.index.values],
+			options=[{'label': name, 'value': name} for name in db.rosters.distinct('teamname')],
 			placeholder='Select a Team'
 		),
 	),
@@ -40,7 +34,10 @@ def update_graph(dropdown_value):
     lat = []
     text = []
     if dropdown_value is not None:
-        df = s[dropdown_value]
+        #query roster array matching teamname
+        arr = db.rosters.find_one({'teamname':dropdown_value},{'_id':0})['roster']
+        #convert roster to DataFrame
+        df = pd.DataFrame(arr)
         #remove all players without location
         df = df[df['loc'] != '--']
         # convert loc to df
